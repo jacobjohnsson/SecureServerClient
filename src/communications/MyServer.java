@@ -58,9 +58,6 @@ public class MyServer implements Runnable {
 
       while ((clientMsg = receiver.readLine()) != null) {
         System.out.println(clientMsg);
-        if (clientMsg.toLowerCase() == "quit") {
-          return;
-        }
         sender.println(clientMsg);
         sender.flush();
       }

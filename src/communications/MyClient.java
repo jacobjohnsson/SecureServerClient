@@ -75,6 +75,11 @@ public class MyClient {
   private static void communicate(PrintWriter sender, BufferedReader receiver, String subject) throws Exception {
     BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in));
     String msg = userInput.readLine();
+
+    if (msg.toLowerCase().equals("quit")) {
+      return;
+    }
+
     sender.println(msg);
     System.out.println("Message sent");
 
