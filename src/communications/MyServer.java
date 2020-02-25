@@ -7,11 +7,18 @@ import java.io.*;
 import javax.security.cert.X509Certificate;
 import java.security.KeyStore;
 
+import java.util.logging.Logger;
+import java.util.logging.Level;
+import java.util.logging.FileHandler;
+import java.time.LocalTime;
+
 import java.math.BigInteger;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class MyServer implements Runnable {
-  private ServerSocket serverSocket;
+  private static LocalTime time;
+  private static Logger LOGGER = Logger.getLogger("Server");
+  private static ServerSocket serverSocket;
   private static String type = "TLS";
   private static AtomicInteger connections = new AtomicInteger(0);
 
@@ -20,7 +27,18 @@ public class MyServer implements Runnable {
     newListener();
   }
 
+  public static void setupLogging() {
+    try {
+      LOGGER.addHandler(new FileHandler("./Log.html"));
+    } catch(IOException e) {
+      System.out.println(e.getMessage());
+      e.printStackTrace();
+    }
+  }
+
+
   public static void main(String[] args) {
+    setupLogging();
     System.out.println("Server is running.");
     int port = -1;
     if (args.length > 0) {
@@ -46,11 +64,14 @@ public class MyServer implements Runnable {
     try {
       SSLSocket socket = (SSLSocket) serverSocket.accept();
       newListener();
+
+
       SSLSession session = socket.getSession();
       X509Certificate cert = (X509Certificate) session.getPeerCertificateChain()[0];
       String userID = cert.getSubjectDN().getName();
       connections.getAndIncrement();
       printCert(cert);
+      LOGGER.log( Level.INFO, "Connection accepted", time.now() );
 
       PrintWriter sender = new PrintWriter(socket.getOutputStream(), true);
       BufferedReader receiver = new BufferedReader(new InputStreamReader(socket.getInputStream()));
