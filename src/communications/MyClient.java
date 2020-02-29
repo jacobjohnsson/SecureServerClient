@@ -17,6 +17,7 @@ public class MyClient {
     try {
       setup(args);
     } catch(Exception e) {
+      System.out.println("Unable to initiate connection to server.");
       e.printStackTrace();
     }
   }
@@ -41,31 +42,26 @@ public class MyClient {
     System.out.println("\nSocket before handshake: \n" + socket + "\n");
 
     String subject = "";
-    try {
 
-      socket.startHandshake();
+    socket.startHandshake();
 
-      SSLSession session = socket.getSession();
-      X509Certificate cert = (javax.security.cert.X509Certificate)session.getPeerCertificateChain()[0];
-      subject = cert.getSubjectDN().getName();
-      String issuer = cert.getIssuerDN().getName();
-      BigInteger serialNum = cert.getSerialNumber();
-      System.out.println("certificate name (subject DN field) on certificate received from communication.server:\n" + subject + "\n");
-      System.out.println("communication.server name (cert issuer DN field): " + issuer);
-      System.out.println("communication.server, x509 certificate serial number: " + serialNum);
-      System.out.println("socket after handshake:\n" + socket + "\n");
-      System.out.println("secure connection established\n\n");
-      System.out.println("Server is awaiting your message.");
-
-    } catch(Exception e) {
-      throw new IOException(e.getMessage());
-    }
+    SSLSession session = socket.getSession();
+    X509Certificate cert = (javax.security.cert.X509Certificate)session.getPeerCertificateChain()[0];
+    subject = cert.getSubjectDN().getName();
+    String issuer = cert.getIssuerDN().getName();
+    BigInteger serialNum = cert.getSerialNumber();
+    System.out.println("certificate name (subject DN field) on certificate received from communication.server:\n" + subject + "\n");
+    System.out.println("communication.server name (cert issuer DN field): " + issuer);
+    System.out.println("communication.server, x509 certificate serial number: " + serialNum);
+    System.out.println("socket after handshake:\n" + socket + "\n");
+    System.out.println("secure connection established\n\n");
+    System.out.println("Server is awaiting your message.");
 
     // Let the communications begin!
     try {
       communicate(socket, subject);
     } catch(IOException e) {
-      System.out.println("Unexpected IOException!");
+      System.out.println("Unexpected IOException while communicating!");
       e.printStackTrace();
     }
   }
