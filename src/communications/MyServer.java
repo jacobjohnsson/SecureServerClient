@@ -27,7 +27,7 @@ public class MyServer implements Runnable {
     newListener();
   }
 
-  public static void setupLogging() {
+  private static void setupLogging() {
     try {
       LOGGER.addHandler(new FileHandler("./Log.html"));
     } catch(IOException e) {
@@ -35,7 +35,6 @@ public class MyServer implements Runnable {
       e.printStackTrace();
     }
   }
-
 
   public static void main(String[] args) {
     setupLogging();
@@ -61,18 +60,15 @@ public class MyServer implements Runnable {
   }
 
   public void run() {
+    SSLSocket socket = acceptConnection();        // Blocking
+    SSLSession session = socket.getSession();
+    X509Certificate cert = verifyCertificateChain(session);
+    String userID = cert.getSubjectDN().getName();
+    connections.getAndIncrement();
+    printCert(cert);
+    LOGGER.log( Level.INFO, "Connection accepted", time.now() );
+
     try {
-      SSLSocket socket = (SSLSocket) serverSocket.accept();
-      newListener();
-
-
-      SSLSession session = socket.getSession();
-      X509Certificate cert = (X509Certificate) session.getPeerCertificateChain()[0];
-      String userID = cert.getSubjectDN().getName();
-      connections.getAndIncrement();
-      printCert(cert);
-      LOGGER.log( Level.INFO, "Connection accepted", time.now() );
-
       PrintWriter sender = new PrintWriter(socket.getOutputStream(), true);
       BufferedReader receiver = new BufferedReader(new InputStreamReader(socket.getInputStream()));
       String clientMsg = null;
@@ -93,6 +89,29 @@ public class MyServer implements Runnable {
       int nbr = connections.getAndDecrement()  - 1;
       System.out.println("Number of connections: " + nbr);
     }
+  }
+
+  private X509Certificate verifyCertificateChain(SSLSession session) {
+    X509Certificate cert = null;
+    try {
+      cert = (X509Certificate) session.getPeerCertificateChain()[0];
+    } catch(SSLPeerUnverifiedException e) {
+      System.out.println("Peer's identity could not be verified");
+      e.printStackTrace();
+    }
+    return cert;
+  }
+
+  private SSLSocket acceptConnection() {
+    SSLSocket socket = null;
+    try {
+      socket = (SSLSocket) serverSocket.accept();
+    } catch(Exception e) {
+      System.out.println("Unable to establish socket. Shutting down.");
+      e.printStackTrace();
+    }
+    newListener();
+    return socket;
   }
 
   private static void printCert(X509Certificate cert) {
@@ -128,6 +147,4 @@ public class MyServer implements Runnable {
     }
     return SSLServerSocketFactory.getDefault();
   }
-
-
 }

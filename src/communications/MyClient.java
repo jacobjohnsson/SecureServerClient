@@ -62,6 +62,15 @@ public class MyClient {
     }
 
     // Let the communications begin!
+    try {
+      communicate(socket, subject);
+    } catch(IOException e) {
+      System.out.println("Unexpected IOException!");
+      e.printStackTrace();
+    }
+  }
+
+  private static void communicate(Socket socket, String subject) throws IOException {
     PrintWriter sender = new PrintWriter(socket.getOutputStream(), true);
     BufferedReader receiver = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
@@ -72,7 +81,7 @@ public class MyClient {
     socket.close();
   }
 
-  private static void communicate(PrintWriter sender, BufferedReader receiver, String subject) throws Exception {
+  private static void communicate(PrintWriter sender, BufferedReader receiver, String subject) throws IOException {
     BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in));
     String msg = userInput.readLine();
 
@@ -105,12 +114,10 @@ public class MyClient {
     return password;
   }
 
-
   private static char[] readPassword() {
     System.out.println("Enter keystore password: ");
     return System.console().readPassword();
   }
-
 
   private static void handleInput(String[] args) {
     if (args.length < 2) {
